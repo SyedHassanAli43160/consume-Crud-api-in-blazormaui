@@ -1,0 +1,124 @@
+﻿
+@page "/iindex"
+@using consumeapiinblazormaui.Data;
+@inject NavigationManager nav
+@using consumeapiinblazormaui.helper;
+@using Newtonsoft.Json;
+@using System.Net.Http;
+<h1>Index</h1>
+
+<p>
+    <a href="/create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+               Name
+            </th>
+            <th>
+               Email
+            </th>
+            <th>
+              Actions
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    
+        @try
+        {
+            @foreach (var item in userList)
+            {
+          
+            <tbody>
+                <tr>
+                    <td>
+                       
+                        @item.Name
+                    </td>
+                    <td>
+                        @item.Email
+                    </td>
+                    <td>
+                        <a @onclick="(async () => await Details(item.Id))" href="/">Details</a>
+                        <a @onclick="(async () => await deleteuser(item.Id))" href="#">Delete</a>
+                        <a @onclick="(async () => await edituser(item.Id))" href="/">Edit</a>
+
+                    </td>
+                </tr>
+            </tbody>
+            }
+        }
+        catch
+        {
+            <tbody>
+            <tr>
+                <td>
+                  
+                </td>
+                <td>
+                  
+                </td>
+                <td>
+                    @*    @Html.ActionLink("Edit", "update", new {  id=item.Id  }) |
+                @Html.ActionLink("Details", "Details", new {  id=item.Id  }) |
+                @Html.ActionLink("Delete", "Deleteuser", new {  id=item.Id  })*@
+                </td>
+            </tr>
+        </tbody>
+        }
+
+
+</table>
+
+@code {
+    protected List<user> userList = new();
+    protected List<user> searchUserData = new();
+    userapi _Api = new userapi();
+
+    protected async Task GetUser()
+    {
+        HttpClient client = _Api.initial();
+        HttpResponseMessage res = await client.GetAsync("user/Get");
+        var value = res;
+        if (res.IsSuccessStatusCode)
+        {
+            var result = res.Content.ReadAsStringAsync().Result;
+            userList = JsonConvert.DeserializeObject<List<user>>(result);
+
+        }
+
+        searchUserData = userList;
+    }
+    protected async Task deleteuser(int Id)
+    {
+        var user = new user();
+        HttpClient client = _Api.initial();
+        HttpResponseMessage res = await client.DeleteAsync($"user/Delete?id={Id}");
+        if (res.IsSuccessStatusCode)
+        {
+            nav.NavigateTo("/iindex");
+        }
+    }
+    public async Task Details(int Id)
+    {
+       
+      
+        nav.NavigateTo($"/details/{Id}");
+    }
+    public async Task edituser(int Id)
+    {
+       
+      
+        nav.NavigateTo($"/edit/{Id}");
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        var user = new user();
+       
+        await GetUser();
+        
+    }
+
+}

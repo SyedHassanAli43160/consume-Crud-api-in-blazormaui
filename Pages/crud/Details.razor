@@ -1,0 +1,61 @@
+﻿@page "/details/{Id}"
+
+@using Newtonsoft.Json;
+@using consumeapiinblazormaui.Data
+@using consumeapiinblazormaui.helper
+@inject NavigationManager nav
+@inject HttpClient Http
+
+<h1>Customer Details</h1>
+
+@if (userinfo == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <table class="table">
+        <tr>
+            <td>ID:</td>
+            <td>@userinfo.Id</td>
+        </tr>
+        <tr>
+            <td>Name:</td>
+            <td>@userinfo.Name</td>
+        </tr>
+        <tr>
+            <td>Email:</td>
+            <td>@userinfo.Email</td>
+        </tr>
+    </table>
+    <a href="/iindex">Return To Home</a>
+}
+
+@code {
+    userapi _Api = new userapi();
+    protected user userinfo = new();
+    [Parameter]
+    public string Id{ get; set; }
+    public async Task Details1(string Id)
+    {
+        Id = Id;
+        //var user = new user();
+        HttpClient client = _Api.initial();
+        HttpResponseMessage res = await client.GetAsync($"user/Getuserbyid?id={Id}");
+        if (res.IsSuccessStatusCode)
+        {
+            var result = res.Content.ReadAsStringAsync().Result;
+            userinfo = JsonConvert.DeserializeObject<user>(result);
+           
+        }
+        await Task.FromResult(userinfo);
+
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        var user = new user();
+
+        await Details1(Id);
+
+    }
+}
